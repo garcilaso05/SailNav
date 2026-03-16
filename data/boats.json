@@ -1,0 +1,73 @@
+{
+  "sailboat": {
+    "name": "Cruising Sailboat",
+    "description": "All-purpose cruiser, moderate performance",
+    "minTackAngle": 45,
+    "polars": [
+      { "angle": 45,  "speedPercent": 0.60 },
+      { "angle": 60,  "speedPercent": 0.78 },
+      { "angle": 75,  "speedPercent": 0.88 },
+      { "angle": 90,  "speedPercent": 0.92 },
+      { "angle": 110, "speedPercent": 0.96 },
+      { "angle": 130, "speedPercent": 0.90 },
+      { "angle": 150, "speedPercent": 0.82 },
+      { "angle": 170, "speedPercent": 0.72 },
+      { "angle": 180, "speedPercent": 0.65 }
+    ]
+  },
+  "yacht": {
+    "name": "Racing Yacht",
+    "description": "High-performance racer, close-hauled specialist",
+    "minTackAngle": 35,
+    "polars": [
+      { "angle": 35,  "speedPercent": 0.75 },
+      { "angle": 52,  "speedPercent": 0.92 },
+      { "angle": 70,  "speedPercent": 1.05 },
+      { "angle": 90,  "speedPercent": 1.10 },
+      { "angle": 110, "speedPercent": 1.12 },
+      { "angle": 135, "speedPercent": 1.05 },
+      { "angle": 160, "speedPercent": 0.88 },
+      { "angle": 180, "speedPercent": 0.78 }
+    ]
+  },
+  "catamaran": {
+    "name": "Catamaran",
+    "description": "Fast multihull, excellent on reaches",
+    "minTackAngle": 50,
+    "polars": [
+      { "angle": 50,  "speedPercent": 0.70 },
+      { "angle": 70,  "speedPercent": 0.95 },
+      { "angle": 90,  "speedPercent": 1.20 },
+      { "angle": 110, "speedPercent": 1.35 },
+      { "angle": 130, "speedPercent": 1.25 },
+      { "angle": 150, "speedPercent": 1.10 },
+      { "angle": 180, "speedPercent": 0.85 }
+    ]
+  },
+  "windsurf": {
+    "name": "Windsurf",
+    "description": "Windsurfer, best on beam reach",
+    "minTackAngle": 45,
+    "polars": [
+      { "angle": 45,  "speedPercent": 0.80 },
+      { "angle": 75,  "speedPercent": 0.95 },
+      { "angle": 90,  "speedPercent": 0.70 },
+      { "angle": 120, "speedPercent": 0.60 },
+      { "angle": 135, "speedPercent": 0.55 },
+      { "angle": 180, "speedPercent": 0.45 }
+    ]
+  },
+  "dinghy": {
+    "name": "Dinghy",
+    "description": "Small dinghy, agile, weather-sensitive",
+    "minTackAngle": 42,
+    "polars": [
+      { "angle": 42,  "speedPercent": 0.55 },
+      { "angle": 60,  "speedPercent": 0.72 },
+      { "angle": 90,  "speedPercent": 0.88 },
+      { "angle": 120, "speedPercent": 0.92 },
+      { "angle": 150, "speedPercent": 0.80 },
+      { "angle": 180, "speedPercent": 0.65 }
+    ]
+  }
+}

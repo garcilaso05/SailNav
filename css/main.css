@@ -1,0 +1,128 @@
+/* =====================================================================
+   main.css — Root tokens, global reset, app-level layout
+   Imports: map.css, controls.css
+   ===================================================================== */
+
+@import url('map.css');
+@import url('controls.css');
+
+/* ── Design Tokens ───────────────────────────────────────────────── */
+:root {
+  /* Background depth layers */
+  --bg-0: #010c18;
+  --bg-1: #051525;
+  --bg-2: #091e35;
+  --bg-panel: rgba(3, 12, 26, 0.97);
+  --bg-glass: rgba(0, 180, 140, 0.05);
+
+  /* Border & glow */
+  --border-dim: rgba(0, 212, 170, 0.10);
+  --border: rgba(0, 212, 170, 0.20);
+  --border-bright: rgba(0, 212, 170, 0.40);
+  --glow-teal: 0 0 18px rgba(0, 212, 170, 0.25);
+  --glow-blue: 0 0 18px rgba(56, 189, 248, 0.20);
+
+  /* Accent palette */
+  --teal: #00d4aa;
+  --teal-dim: rgba(0, 212, 170, 0.55);
+  --blue: #38bdf8;
+  --blue-dim: rgba(56, 189, 248, 0.55);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251, 191, 36, 0.55);
+  --red: #f87171;
+  --green: #4ade80;
+
+  /* Text */
+  --text-0: #e8f5ff;
+  --text-1: #7fb0cc;
+  --text-2: #3d6880;
+  --text-accent: var(--teal);
+
+  /* Layout */
+  --sidebar-w: 290px;
+  --results-w: 340px;
+  --radius: 5px;
+  --radius-lg: 9px;
+
+  /* Typography */
+  --font-display: 'Cinzel', 'Georgia', serif;
+  --font-ui: 'Chakra Petch', 'Courier New', monospace;
+
+  /* Misc */
+  --transition: 0.22s ease;
+  --shadow-deep: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Global Reset ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-0);
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-0);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+input, select { font: inherit; color: inherit; }
+svg { display: block; }
+
+/* ── App Shell ───────────────────────────────────────────────────── */
+#app {
+  display: flex;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+/* ── Utility ─────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  transition: all var(--transition);
+}
+.icon-btn:hover {
+  background: var(--border);
+  color: var(--text-0);
+}
+
+/* ── Grid scan-line atmosphere overlay on sidebar ────────────────── */
+#sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 23px,
+      rgba(0, 212, 170, 0.025) 24px
+    );
+  pointer-events: none;
+  z-index: 0;
+}

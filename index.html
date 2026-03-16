@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="app.title">SailNav — Smart Sailing Route Planner</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ════════════════════════ LEFT SIDEBAR ════════════════════════ -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <!--
+            FIX #2 — Corrected anchor SVG:
+              • Ring (shackle) at top-center
+              • Vertical shaft
+              • Stock: horizontal crossbar
+              • Crown: arch curving DOWNWARD (correct for a real anchor)
+              • Two diagonal fluke arms at the arch ends
+          -->
+          <svg class="logo-anchor" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="4" r="2.2"/>
+            <line x1="12" y1="6.2" x2="12" y2="19"/>
+            <line x1="4.5" y1="9.5" x2="19.5" y2="9.5"/>
+            <path d="M6 19 C6 23.5 18 23.5 18 19"/>
+            <line x1="6"  y1="19" x2="3.5"  y2="16.5"/>
+            <line x1="18" y1="19" x2="20.5" y2="16.5"/>
+          </svg>
+          <div>
+            <h1 class="logo-title" data-i18n="logo.title">SailNav</h1>
+            <p class="logo-sub" data-i18n="logo.subtitle">Route Intelligence</p>
+          </div>
+        </div>
+
+        <div class="lang-switch">
+          <label class="lang-label" for="language-select" data-i18n="language.label">Language</label>
+          <select id="language-select" class="lang-select" aria-label="Language selector" data-i18n-attr="aria-label:language.label">
+            <option value="en" data-i18n="language.english">English</option>
+            <option value="es" data-i18n="language.spanish">Español</option>
+            <option value="ca" data-i18n="language.catalan">Català</option>
+            <option value="fr" data-i18n="language.french">Français</option>
+            <option value="de" data-i18n="language.german">Deutsch</option>
+            <option value="it" data-i18n="language.italian">Italiano</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sidebar-body">
+
+        <!-- DEPARTURE — FIX #5: split into date input + time input -->
+        <section class="ctrl-section">
+          <h2 class="section-label" data-i18n="sidebar.departure">Departure</h2>
+          <div class="date-time-row">
+            <div class="field-group" style="flex:1.4">
+              <label class="field-label" for="departure-date" data-i18n="sidebar.date">Date</label>
+              <input type="date" id="departure-date" class="field-input" />
+            </div>
+            <div class="field-group" style="flex:1">
+              <label class="field-label" for="departure-time-input" data-i18n="sidebar.time">Time</label>
+              <!-- type="time" exposes a native clock-icon dropdown on all desktop browsers -->
+              <input type="time" id="departure-time-input" class="field-input" step="300" />
+            </div>
+          </div>
+        </section>
+
+        <!-- VESSEL — FIX #1: select wrapped in div.select-wrapper for a reliable CSS arrow -->
+        <section class="ctrl-section">
+          <h2 class="section-label" data-i18n="sidebar.vessel">Vessel</h2>
+          <div class="field-group">
+            <label class="field-label" for="boat-select" data-i18n="sidebar.boatProfile">Boat Profile</label>
+            <div class="select-wrapper">
+              <select id="boat-select" class="field-input field-select"></select>
+            </div>
+          </div>
+          <div id="boat-specs" class="boat-specs hidden"></div>
+        </section>
+
+        <!-- TACKING STRATEGY -->
+        <section class="ctrl-section">
+          <h2 class="section-label" data-i18n="sidebar.tackingStrategy">Tacking Strategy</h2>
+          <div class="tack-selector">
+            <button class="tack-btn" data-value="few"><span data-i18n="tack.few">Long</span><br/><small data-i18n="tack.fewHelp">2 km tacks</small></button>
+            <button class="tack-btn active" data-value="medium"><span data-i18n="tack.medium">Medium</span><br/><small data-i18n="tack.mediumHelp">800 m tacks</small></button>
+            <button class="tack-btn" data-value="many"><span data-i18n="tack.many">Short</span><br/><small data-i18n="tack.manyHelp">300 m tacks</small></button>
+          </div>
+        </section>
+
+        <!-- UNITS — FIX #6: speed + distance unit switchers -->
+        <section class="ctrl-section">
+          <h2 class="section-label" data-i18n="sidebar.units">Units</h2>
+          <div class="unit-row">
+            <span class="unit-label" data-i18n="sidebar.speed">Speed</span>
+            <div class="unit-toggle-group" id="speed-unit-toggle">
+              <button class="unit-btn active" data-unit="kn">kn</button>
+              <button class="unit-btn" data-unit="ms">m/s</button>
+              <button class="unit-btn" data-unit="kmh">km/h</button>
+            </div>
+          </div>
+          <div class="unit-row" style="margin-top:8px">
+            <span class="unit-label" data-i18n="sidebar.distance">Distance</span>
+            <div class="unit-toggle-group" id="dist-unit-toggle">
+              <button class="unit-btn active" data-unit="nm">NM</button>
+              <button class="unit-btn" data-unit="km">km</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- WIND WIDGET -->
+        <section class="ctrl-section" id="wind-section" style="display:none">
+          <h2 class="section-label" data-i18n="sidebar.startWind">Start Wind</h2>
+          <div id="wind-widget" class="wind-widget">
+            <div class="wind-compass">
+              <svg id="wind-arrow-svg" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="38" class="compass-ring"/>
+                <text x="40" y="12"  class="compass-txt" data-i18n="compass.n">N</text>
+                <text x="40" y="74"  class="compass-txt" data-i18n="compass.s">S</text>
+                <text x="8"  y="44"  class="compass-txt" data-i18n="compass.w">W</text>
+                <text x="68" y="44"  class="compass-txt" data-i18n="compass.e">E</text>
+                <g id="wind-arrow-group" transform="rotate(0, 40, 40)">
+                  <polygon points="40,10 34,52 40,46 46,52" class="arrow-poly"/>
+                </g>
+              </svg>
+            </div>
+            <div class="wind-data">
+              <div class="wd-row">
+                <span class="wd-label" data-i18n="sidebar.speed">Speed</span>
+                <span class="wd-val" id="w-speed">—</span>
+                <span class="wd-unit" id="w-speed-unit">kn</span>
+              </div>
+              <div class="wd-row">
+                <span class="wd-label" data-i18n="sidebar.dirFrom">Dir (from)</span>
+                <span class="wd-val" id="w-dir">—</span>
+                <span class="wd-unit">°</span>
+              </div>
+              <div class="wd-row">
+                <span class="wd-label" data-i18n="sidebar.gusts">Gusts</span>
+                <span class="wd-val" id="w-gusts">—</span>
+                <span class="wd-unit" id="w-gusts-unit">kn</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- WAYPOINTS COUNTER -->
+        <section class="ctrl-section">
+          <div class="wp-counter">
+            <span id="wp-count-label" data-i18n="waypoints.none">No waypoints yet</span>
+          </div>
+          <p class="wp-hint-text" data-i18n="waypoints.hint">Right-click a waypoint to delete it (and all following)</p>
+        </section>
+
+        <!-- ACTIONS -->
+        <section class="ctrl-section action-section">
+          <button id="calculate-btn" class="primary-btn" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <span data-i18n="actions.calculateRoute">Calculate Route</span>
+          </button>
+          <button id="clear-btn" class="secondary-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+            </svg>
+            <span data-i18n="actions.clearAll">Clear All</span>
+          </button>
+        </section>
+
+        <!-- INSTRUCTIONS -->
+        <section class="ctrl-section" id="instructions-panel">
+          <div class="instr-list">
+            <div class="instr-item"><span class="instr-num">01</span><span data-i18n="instructions.1">Click the map to drop waypoints</span></div>
+            <div class="instr-item"><span class="instr-num">02</span><span data-i18n="instructions.2">Right-click a waypoint to delete it and all that follow</span></div>
+            <div class="instr-item"><span class="instr-num">03</span><span data-i18n="instructions.3">Hover a waypoint to see coordinates &amp; forecast wind</span></div>
+            <div class="instr-item"><span class="instr-num">04</span><span data-i18n="instructions.4">Hit Calculate — tacking is computed automatically</span></div>
+          </div>
+        </section>
+
+      </div><!-- /sidebar-body -->
+    </aside>
+
+    <!-- ════════════════════════ MAP ════════════════════════ -->
+    <main id="map-wrapper">
+      <div id="map"></div>
+
+      <!-- Loading overlay -->
+      <div id="loading-overlay">
+        <div class="spinner-ring"></div>
+        <p id="loading-text" data-i18n="loading.computing">Computing…</p>
+      </div>
+
+      <!-- Map hint bubble -->
+      <div id="map-hint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="4" r="2.2"/>
+          <line x1="12" y1="6.2" x2="12" y2="19"/>
+          <line x1="4.5" y1="9.5" x2="19.5" y2="9.5"/>
+          <path d="M6 19 C6 23.5 18 23.5 18 19"/>
+          <line x1="6"  y1="19" x2="3.5"  y2="16.5"/>
+          <line x1="18" y1="19" x2="20.5" y2="16.5"/>
+        </svg>
+        <span data-i18n="map.hint">Click anywhere on the map to drop your first waypoint</span>
+      </div>
+
+      <!-- Legend -->
+      <div id="map-legend">
+        <div class="legend-row"><span class="legend-dot blue"></span><span data-i18n="legend.directRoute">Direct route</span></div>
+        <div class="legend-row"><span class="legend-dot amber"></span><span data-i18n="legend.tacking">Tacking (upwind)</span></div>
+        <div class="legend-row"><span class="legend-dot cyan small"></span><span data-i18n="legend.chunks">200 m calc. chunks</span></div>
+      </div>
+
+      <!-- FIX #4 — Waypoint hover tooltip -->
+      <div id="wp-tooltip">
+        <div class="wpt-header"></div>
+        <div class="wpt-body"></div>
+      </div>
+
+      <!-- FORECAST STRIP — slides up from bottom of map -->
+      <div id="forecast-strip">
+        <button id="forecast-toggle" aria-expanded="false">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span data-i18n="forecast.title">Wind Forecast</span>
+          <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="18 15 12 9 6 15"/>
+          </svg>
+        </button>
+        <div id="forecast-body">
+          <div id="forecast-chart"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ════════════════════════ RESULTS PANEL ════════════════════════ -->
+    <div id="results-panel">
+      <div class="rp-header">
+        <h2 class="rp-title" data-i18n="results.title">Route Analysis</h2>
+        <button id="close-panel-btn" class="icon-btn" title="Close" data-i18n-attr="title:common.close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="summary-grid">
+        <div class="stat-card">
+          <span class="stat-label" data-i18n="sidebar.distance">Distance</span>
+          <span class="stat-value" id="stat-distance">—</span>
+          <span class="stat-unit" id="stat-distance-unit">NM</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label" data-i18n="results.totalTime">Total Time</span>
+          <span class="stat-value" id="stat-time">—</span>
+          <span class="stat-unit"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label" data-i18n="results.avgSpeed">Avg Speed</span>
+          <span class="stat-value" id="stat-speed">—</span>
+          <span class="stat-unit" id="stat-speed-unit">kn</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label" data-i18n="results.eta">ETA</span>
+          <span class="stat-value small" id="stat-eta">—</span>
+          <span class="stat-unit"></span>
+        </div>
+      </div>
+
+      <div class="rp-section-title" data-i18n="results.legBreakdown">Leg Breakdown</div>
+      <div id="leg-list"></div>
+
+      <div class="rp-section-title" data-i18n="results.waypointEtas">Waypoint ETAs</div>
+      <div id="wp-eta-list"></div>
+
+      <div class="rp-footer">
+        <small data-i18n="results.footer">Wind data: Open-Meteo API · Routing: Haversine + VMG polars</small>
+        <button id="export-route-btn" class="secondary-btn export-btn" data-i18n="export.open" disabled>
+          Export Journey
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
